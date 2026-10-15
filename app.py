@@ -10,6 +10,7 @@ import socket
 import subprocess
 import urllib.request
 import urllib.parse
+import re
 import logging
 from flask import Flask, request, jsonify, render_template, Response, send_file
 import flask.cli
@@ -103,14 +104,58 @@ def obter_ip_local():
         except Exception:
             return '127.0.0.1'
 
+tunnel_process = None
+tunnel_url = None
+tunnel_lock = threading.Lock()
+
 @app.route('/api/network-info', methods=['GET'])
 def network_info():
     ip = obter_ip_local()
     return jsonify({
         'local_ip': ip,
         'port': porta_ativa_global,
-        'url': f"http://{ip}:{porta_ativa_global}"
+        'url': f"http://{ip}:{porta_ativa_global}",
+        'tunnel_url': tunnel_url
     }), 200
+
+@app.route('/api/create-tunnel', methods=['POST'])
+def create_tunnel():
+    global tunnel_process, tunnel_url
+    with tunnel_lock:
+        if tunnel_url:
+            return jsonify({'url': tunnel_url}), 200
+
+        try:
+            cmd = ['ssh', '-o', 'StrictHostKeyChecking=no', '-o', 'ServerAliveInterval=30', '-R', f'80:127.0.0.1:{porta_ativa_global}', 'nokey@localhost.run']
+            startupinfo = None
+            if sys.platform == 'win32':
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                startupinfo.wShowWindow = 0
+
+            proc = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                startupinfo=startupinfo,
+                bufsize=1
+            )
+            tunnel_process = proc
+
+            for _ in range(40):
+                line = proc.stdout.readline()
+                if not line:
+                    time.sleep(0.2)
+                    continue
+                match = re.search(r'(https://[a-zA-Z0-9.-]+\.lhr\.life)', line)
+                if match:
+                    tunnel_url = match.group(1)
+                    return jsonify({'url': tunnel_url}), 200
+
+            return jsonify({'error': 'Tempo limite ao gerar link público.'}), 504
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
 
 @app.route('/api/download-file', methods=['GET'])
 def download_file():

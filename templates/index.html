@@ -1614,12 +1614,21 @@
         <div class="modal-header">
             <div class="modal-icon-badge"><i class="fa-solid fa-mobile-screen-button"></i></div>
             <h2>SoundPro no seu Celular</h2>
-            <p>Acesse e controle este aplicativo pelo seu smartphone sem instalar nada da loja!</p>
+            <p>Acesse e controle este aplicativo pelo celular sem instalar nada da loja!</p>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-bottom: 14px; justify-content: center;">
+            <button id="tab-mode-tunnel" onclick="ativarModoInternet()" style="flex: 1; padding: 8px 10px; border-radius: 500px; font-size: 11px; font-weight: 700; border: 1px solid var(--spotify-green); background: rgba(30, 215, 96, 0.2); color: #fff; cursor: pointer; transition: all 0.2s;">
+                <i class="fa-solid fa-globe"></i> Modo Internet (4G / Escola)
+            </button>
+            <button id="tab-mode-local" onclick="ativarModoLocal()" style="flex: 1; padding: 8px 10px; border-radius: 500px; font-size: 11px; font-weight: 700; border: 1px solid #444; background: #222; color: #aaa; cursor: pointer; transition: all 0.2s;">
+                <i class="fa-solid fa-wifi"></i> Wi-Fi Local (Casa)
+            </button>
         </div>
         
         <div class="qr-box-wrapper">
             <div id="qrcode-container" class="qrcode-container"></div>
-            <div class="qr-loading" id="qr-loading" style="color: #000; font-size: 13px; text-align: center;"><i class="fa-solid fa-spinner fa-spin"></i> Gerando QR Code...</div>
+            <div class="qr-loading" id="qr-loading" style="color: #000; font-size: 12px; text-align: center; font-weight: 600;"><i class="fa-solid fa-spinner fa-spin"></i> Gerando QR Code...</div>
         </div>
 
         <div class="url-copy-box">
@@ -1627,18 +1636,29 @@
             <button id="btn-copy-url" onclick="copiarLinkCelular()"><i class="fa-solid fa-copy"></i> Copiar</button>
         </div>
 
-        <div class="modal-instructions">
+        <div class="modal-instructions" id="modal-inst-tunnel">
             <div class="instruction-item">
                 <span class="inst-num">1</span>
-                <div><strong>Mesmo Wi-Fi:</strong> Certifique-se de que o celular está no mesmo Wi-Fi deste computador.</div>
+                <div><strong>Acesso Direto:</strong> Funciona pelo 4G, 5G ou em qualquer Wi-Fi (inclusive colégios e faculdades com bloqueio).</div>
             </div>
             <div class="instruction-item">
                 <span class="inst-num">2</span>
-                <div><strong>Aponte a Câmera:</strong> Escaneie o QR Code acima ou digite o link no navegador do celular (Chrome ou Safari).</div>
+                <div><strong>Aponte a Câmera:</strong> Escaneie o QR Code acima ou toque no link para abrir no celular.</div>
             </div>
             <div class="instruction-item">
                 <span class="inst-num">3</span>
-                <div><strong>Instale como App:</strong> No celular, toque nos 3 pontinhos do Chrome (ou Compartilhar no Safari) e selecione <em>"Adicionar à tela inicial"</em>. Ele vira um app nativo na sua tela!</div>
+                <div><strong>Adicionar à Tela:</strong> No navegador do celular, toque nas opções e escolha <em>"Adicionar à tela inicial"</em>.</div>
+            </div>
+        </div>
+
+        <div class="modal-instructions" id="modal-inst-local" style="display: none;">
+            <div class="instruction-item">
+                <span class="inst-num">1</span>
+                <div><strong>Mesmo Wi-Fi:</strong> O celular e o computador precisam estar no mesmo Wi-Fi residencial.</div>
+            </div>
+            <div class="instruction-item">
+                <span class="inst-num">2</span>
+                <div><strong>Aponte a Câmera:</strong> Escaneie o QR Code ou digite o link no Chrome/Safari do celular.</div>
             </div>
         </div>
     </div>
@@ -1659,36 +1679,129 @@
     let ultimoDownloadNome = '';
     const isMobileClient = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 
+    let localWifiUrl = '';
+    let publicTunnelUrl = '';
+    let modoAtualConexao = 'tunnel';
+
+    function renderQrCode(url) {
+        const container = document.getElementById('qrcode-container');
+        container.innerHTML = '';
+        if (typeof QRCode !== 'undefined') {
+            qrcodeInstance = new QRCode(container, {
+                text: url,
+                width: 170,
+                height: 170,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.M
+            });
+        } else {
+            container.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=170x170&data=${encodeURIComponent(url)}" alt="QR Code" style="width: 170px; height: 170px; display: block;">`;
+        }
+    }
+
     async function abrirModalCelular() {
         const modal = document.getElementById('modal-celular');
         modal.style.display = 'flex';
+        
+        try {
+            const res = await fetch('/api/network-info');
+            const data = await res.json();
+            localWifiUrl = data.url;
+            if (data.tunnel_url) {
+                publicTunnelUrl = data.tunnel_url;
+            }
+        } catch {}
+
+        if (publicTunnelUrl) {
+            ativarModoInternet();
+        } else {
+            ativarModoInternet();
+        }
+    }
+
+    async function ativarModoInternet() {
+        modoAtualConexao = 'tunnel';
+        document.getElementById('tab-mode-tunnel').style.background = 'rgba(30, 215, 96, 0.2)';
+        document.getElementById('tab-mode-tunnel').style.color = '#fff';
+        document.getElementById('tab-mode-tunnel').style.borderColor = 'var(--spotify-green)';
+        document.getElementById('tab-mode-local').style.background = '#222';
+        document.getElementById('tab-mode-local').style.color = '#aaa';
+        document.getElementById('tab-mode-local').style.borderColor = '#444';
+        document.getElementById('modal-inst-tunnel').style.display = 'flex';
+        document.getElementById('modal-inst-local').style.display = 'none';
+
         const container = document.getElementById('qrcode-container');
         const loading = document.getElementById('qr-loading');
         const inputUrl = document.getElementById('mobile-url-input');
 
-        try {
-            const res = await fetch('/api/network-info');
-            const data = await res.json();
-            currentMobileUrl = data.url;
-            inputUrl.value = data.url;
+        if (publicTunnelUrl) {
+            currentMobileUrl = publicTunnelUrl;
+            inputUrl.value = publicTunnelUrl;
             loading.style.display = 'none';
             container.style.display = 'flex';
-            container.innerHTML = '';
+            renderQrCode(publicTunnelUrl);
+            return;
+        }
 
-            if (typeof QRCode !== 'undefined') {
-                qrcodeInstance = new QRCode(container, {
-                    text: data.url,
-                    width: 170,
-                    height: 170,
-                    colorDark: "#000000",
-                    colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.M
-                });
+        container.style.display = 'none';
+        loading.style.display = 'block';
+        loading.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando link de internet seguro (HTTPS)...';
+        inputUrl.value = 'Conectando ao túnel...';
+
+        try {
+            const res = await fetch('/api/create-tunnel', { method: 'POST' });
+            const data = await res.json();
+            if (data.url) {
+                publicTunnelUrl = data.url;
+                currentMobileUrl = data.url;
+                inputUrl.value = data.url;
+                loading.style.display = 'none';
+                container.style.display = 'flex';
+                renderQrCode(data.url);
+                showToast('Link de internet ativo! Funciona no 4G e na escola.', 'info', 4000);
             } else {
-                container.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=170x170&data=${encodeURIComponent(data.url)}" alt="QR Code" style="width: 170px; height: 170px; display: block;">`;
+                throw new Error(data.error || 'Erro');
             }
         } catch (e) {
-            loading.innerHTML = '<span style="color: var(--danger); font-size: 13px;">Erro ao carregar IP local. Certifique-se de estar conectado ao Wi-Fi.</span>';
+            loading.innerHTML = '<span style="color: var(--danger); font-size: 12px;">Não foi possível gerar link público. Usando Wi-Fi local.</span>';
+            setTimeout(() => ativarModoLocal(), 1500);
+        }
+    }
+
+    function ativarModoLocal() {
+        modoAtualConexao = 'local';
+        document.getElementById('tab-mode-local').style.background = 'rgba(30, 215, 96, 0.2)';
+        document.getElementById('tab-mode-local').style.color = '#fff';
+        document.getElementById('tab-mode-local').style.borderColor = 'var(--spotify-green)';
+        document.getElementById('tab-mode-tunnel').style.background = '#222';
+        document.getElementById('tab-mode-tunnel').style.color = '#aaa';
+        document.getElementById('tab-mode-tunnel').style.borderColor = '#444';
+        document.getElementById('modal-inst-local').style.display = 'flex';
+        document.getElementById('modal-inst-tunnel').style.display = 'none';
+
+        const container = document.getElementById('qrcode-container');
+        const loading = document.getElementById('qr-loading');
+        const inputUrl = document.getElementById('mobile-url-input');
+
+        if (localWifiUrl) {
+            currentMobileUrl = localWifiUrl;
+            inputUrl.value = localWifiUrl;
+            loading.style.display = 'none';
+            container.style.display = 'flex';
+            renderQrCode(localWifiUrl);
+        } else {
+            inputUrl.value = 'Carregando IP...';
+            fetch('/api/network-info').then(r => r.json()).then(data => {
+                localWifiUrl = data.url;
+                currentMobileUrl = data.url;
+                inputUrl.value = data.url;
+                loading.style.display = 'none';
+                container.style.display = 'flex';
+                renderQrCode(data.url);
+            }).catch(() => {
+                loading.innerHTML = '<span style="color: var(--danger); font-size: 12px;">Erro ao ler IP local.</span>';
+            });
         }
     }
 
