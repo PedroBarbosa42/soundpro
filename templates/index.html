@@ -1,0 +1,2124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#121212">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>SoundPro</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        :root {
+            --spotify-green: #1ed760;
+            --spotify-green-hover: #1fdf64;
+            --spotify-green-active: #169c46;
+            --bg-black: #000000;
+            --bg-base: #121212;
+            --bg-elevated: #181818;
+            --bg-highlight: #242424;
+            --bg-press: #2a2a2a;
+            --text-main: #ffffff;
+            --text-sub: #b3b3b3;
+            --text-muted: #727272;
+            --border-subtle: #282828;
+            --danger: #e91e63;
+            --danger-hover: #ff3370;
+            --player-height: 88px;
+            --sidebar-width: 280px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'CircularSp', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg-black);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            user-select: none;
+        }
+
+        /* LAYOUT PRINCIPAL (SPOTIFY DESKTOP) */
+        .app-layout {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            height: calc(100vh - var(--player-height));
+            overflow: hidden;
+            gap: 8px;
+            padding: 8px 8px 0 8px;
+            background-color: var(--bg-black);
+        }
+
+        /* BARRA LATERAL */
+        .sidebar {
+            background-color: var(--bg-base);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 20px 16px;
+            gap: 16px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 8px;
+            cursor: pointer;
+        }
+
+        .brand i {
+            color: var(--spotify-green);
+            font-size: 28px;
+            filter: drop-shadow(0 0 10px rgba(30, 215, 96, 0.4));
+        }
+
+        .brand-text {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: #fff;
+        }
+
+        .brand-text span {
+            color: var(--spotify-green);
+        }
+
+        .nav-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 10px 12px;
+            border-radius: 6px;
+            color: var(--text-sub);
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .nav-item i {
+            font-size: 18px;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            color: var(--text-main);
+            background-color: var(--bg-highlight);
+        }
+
+        .nav-item.active i {
+            color: var(--spotify-green);
+        }
+
+        .sidebar-section {
+            background-color: var(--bg-elevated);
+            border-radius: 8px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .sidebar-section-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-sub);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .dir-box {
+            background: #141414;
+            border: 1px solid #2a2a2a;
+            border-radius: 6px;
+            padding: 8px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .dir-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .dir-path {
+            font-family: monospace;
+            font-size: 11px;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* PRESETS RÁPIDOS DE PASTA (INSTANTÂNEOS) */
+        .quick-presets {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 6px;
+        }
+
+        .btn-preset {
+            background-color: #1a1a1a;
+            color: var(--text-sub);
+            border: 1px solid #282828;
+            padding: 7px 4px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.15s ease;
+        }
+
+        .btn-preset i {
+            font-size: 13px;
+        }
+
+        .btn-preset:hover {
+            background-color: #282828;
+            color: #fff;
+            border-color: #404040;
+        }
+
+        .btn-preset.active {
+            background-color: rgba(30, 215, 96, 0.15);
+            color: var(--spotify-green);
+            border-color: var(--spotify-green);
+        }
+
+        .btn-change-folder {
+            background-color: #282828;
+            color: #fff;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 500px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-change-folder:hover {
+            background-color: #3e3e3e;
+            transform: scale(1.02);
+        }
+
+        .btn-change-folder:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        .format-pills {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background-color: #141414;
+            border: 1px solid #2a2a2a;
+            border-radius: 500px;
+            padding: 3px;
+            gap: 4px;
+        }
+
+        .format-pill {
+            background: transparent;
+            border: none;
+            color: var(--text-sub);
+            padding: 7px 0;
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 500px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .format-pill.active {
+            background-color: var(--spotify-green);
+            color: #000;
+            font-weight: 800;
+        }
+
+        .features-badge {
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 11px;
+            color: var(--text-muted);
+            padding: 0 4px;
+        }
+
+        .features-badge div {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .features-badge i {
+            color: var(--spotify-green);
+            font-size: 10px;
+        }
+
+        /* CONTEÚDO PRINCIPAL (MAIN VIEW) */
+        .main-view {
+            background-color: var(--bg-base);
+            border-radius: 8px;
+            overflow-y: auto;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-view::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        .main-view::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .main-view::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+        }
+
+        .main-view::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(255, 255, 255, 0.35);
+        }
+
+        /* BARRA SUPERIOR */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background-color: rgba(18, 18, 18, 0.9);
+            backdrop-filter: blur(16px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 28px;
+            gap: 20px;
+        }
+
+        .search-container {
+            display: flex;
+            align-items: center;
+            background-color: #242424 !important;
+            border: 1px solid #333333;
+            border-radius: 500px;
+            padding: 4px 6px 4px 16px;
+            width: 100%;
+            max-width: 620px;
+            transition: all 0.2s ease;
+        }
+
+        .search-container:focus-within {
+            border-color: #fff;
+            background-color: #2a2a2a !important;
+        }
+
+        .search-container i.search-icon {
+            color: var(--text-sub);
+            font-size: 16px;
+            margin-right: 12px;
+        }
+
+        .search-container input {
+            flex: 1;
+            background: transparent !important;
+            background-color: transparent !important;
+            border: none !important;
+            outline: none !important;
+            color: #ffffff !important;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: none !important;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .search-container input::placeholder {
+            color: #888888;
+        }
+
+        .search-container input:-webkit-autofill,
+        .search-container input:-webkit-autofill:hover, 
+        .search-container input:-webkit-autofill:focus,
+        .search-container input:-webkit-autofill:active {
+            -webkit-text-fill-color: #ffffff !important;
+            -webkit-box-shadow: 0 0 0px 1000px #242424 inset !important;
+            box-shadow: 0 0 0px 1000px #242424 inset !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+
+        .btn-clear-search {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 4px 8px;
+            display: none;
+            transition: color 0.15s;
+        }
+
+        .btn-clear-search:hover {
+            color: #fff;
+        }
+
+        .btn-analyze {
+            background-color: var(--spotify-green);
+            color: #000;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 500px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .btn-analyze:hover {
+            background-color: var(--spotify-green-hover);
+            transform: scale(1.04);
+        }
+
+        .btn-analyze:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .view-switchers {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .view-btn {
+            background-color: transparent;
+            border: none;
+            color: var(--text-sub);
+            font-size: 16px;
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .view-btn.active, .view-btn:hover {
+            color: #fff;
+            background-color: var(--bg-highlight);
+        }
+
+        /* HERO HEADER (PLAYLIST / MÚSICA DETECTADA) */
+        .hero-banner {
+            background: linear-gradient(180deg, #1b3d22 0%, #121212 100%);
+            padding: 28px 28px 20px 28px;
+            display: flex;
+            align-items: flex-end;
+            gap: 28px;
+        }
+
+        .hero-cover-box {
+            width: 190px;
+            height: 190px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.65);
+            background-color: #242424;
+            flex-shrink: 0;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hero-cover {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .hero-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow: hidden;
+        }
+
+        .hero-type {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-sub);
+        }
+
+        .hero-title {
+            font-size: 2.8rem;
+            font-weight: 900;
+            letter-spacing: -1px;
+            line-height: 1.1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #fff;
+        }
+
+        .hero-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text-sub);
+            font-weight: 600;
+        }
+
+        .hero-meta span.dot {
+            font-size: 8px;
+        }
+
+        .hero-meta span.highlight {
+            color: #fff;
+        }
+
+        /* BARRA DE AÇÃO DA PLAYLIST */
+        .action-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 28px;
+            gap: 20px;
+        }
+
+        .action-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .btn-play-all {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background-color: var(--spotify-green);
+            color: #000;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            cursor: pointer;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s cubic-bezier(0.3, 0, 0, 1);
+        }
+
+        .btn-play-all:hover {
+            background-color: var(--spotify-green-hover);
+            transform: scale(1.06);
+        }
+
+        .btn-play-all:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .action-btn-pill {
+            background-color: transparent;
+            border: 1px solid var(--text-sub);
+            color: #fff;
+            padding: 8px 18px;
+            border-radius: 500px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .action-btn-pill:hover {
+            border-color: #fff;
+            transform: scale(1.02);
+        }
+
+        .filter-input {
+            background-color: var(--bg-highlight);
+            border: 1px solid transparent;
+            border-radius: 500px;
+            padding: 8px 16px;
+            color: #fff;
+            font-size: 13px;
+            width: 220px;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .filter-input:focus {
+            border-color: #fff;
+        }
+
+        /* TABELA DE MÚSICAS ESTILO SPOTIFY */
+        .content-area {
+            padding: 0 28px 40px 28px;
+        }
+
+        .track-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .track-table th {
+            color: var(--text-sub);
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .track-table th.center, .track-table td.center {
+            text-align: center;
+        }
+
+        .track-row {
+            border-radius: 6px;
+            transition: background-color 0.2s ease;
+            cursor: pointer;
+        }
+
+        .track-row:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .track-row td {
+            padding: 8px 12px;
+            vertical-align: middle;
+            color: var(--text-sub);
+        }
+
+        .col-index {
+            width: 45px;
+            color: var(--text-sub);
+            font-size: 14px;
+            position: relative;
+        }
+
+        .index-number {
+            display: inline;
+        }
+
+        .btn-row-dl {
+            display: none;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 15px;
+            cursor: pointer;
+            padding: 4px;
+            transition: color 0.15s ease;
+        }
+
+        .btn-row-dl:hover {
+            color: var(--spotify-green);
+        }
+
+        .track-row:hover .index-number {
+            display: none;
+        }
+
+        .track-row:hover .btn-row-dl {
+            display: inline-block;
+        }
+
+        .track-main-info {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .track-thumb {
+            width: 44px;
+            height: 44px;
+            border-radius: 4px;
+            object-fit: cover;
+            background-color: #242424;
+            flex-shrink: 0;
+        }
+
+        .track-text-box {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .track-name {
+            color: #fff;
+            font-weight: 600;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .track-row:hover .track-name {
+            color: var(--spotify-green);
+        }
+
+        .track-artist {
+            color: var(--text-sub);
+            font-size: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .track-album {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+
+        .track-duration {
+            font-variant-numeric: tabular-nums;
+            font-size: 13px;
+        }
+
+        .btn-quick-download {
+            background-color: #242424;
+            color: #fff;
+            border: 1px solid #333;
+            padding: 6px 14px;
+            border-radius: 500px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-quick-download:hover {
+            background-color: var(--spotify-green);
+            color: #000;
+            border-color: var(--spotify-green);
+        }
+
+        /* GRID VIEW (CARDS) */
+        .cards-grid {
+            display: none;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+            padding-top: 10px;
+        }
+
+        .spotify-card {
+            background-color: var(--bg-elevated);
+            padding: 14px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: all 0.25s ease;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .spotify-card:hover {
+            background-color: var(--bg-highlight);
+            transform: translateY(-4px);
+        }
+
+        .card-img-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1/1;
+            border-radius: 6px;
+            overflow: hidden;
+            background-color: #242424;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .card-hover-play {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background-color: var(--spotify-green);
+            color: #000;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+            opacity: 0;
+            transform: translateY(8px);
+            transition: all 0.25s ease;
+            cursor: pointer;
+        }
+
+        .spotify-card:hover .card-hover-play {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .card-hover-play:hover {
+            background-color: var(--spotify-green-hover);
+            transform: scale(1.08);
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-sub {
+            font-size: 12px;
+            color: var(--text-sub);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* ESTADO INICIAL VAZIO */
+        .welcome-view {
+            padding: 40px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .welcome-hero {
+            background: linear-gradient(135deg, #1b3d22 0%, #0d2012 100%);
+            border-radius: 12px;
+            padding: 36px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(30, 215, 96, 0.2);
+        }
+
+        .welcome-hero-content {
+            max-width: 600px;
+            z-index: 2;
+        }
+
+        .welcome-hero-content h2 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            letter-spacing: -0.5px;
+        }
+
+        .welcome-hero-content p {
+            color: var(--text-sub);
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .welcome-hero-bg-icon {
+            position: absolute;
+            right: 20px;
+            bottom: -20px;
+            font-size: 180px;
+            color: rgba(30, 215, 96, 0.08);
+            transform: rotate(-15deg);
+        }
+
+        .quick-tips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+        }
+
+        .quick-tip-card {
+            background-color: var(--bg-elevated);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border: 1px solid var(--border-subtle);
+            transition: all 0.2s ease;
+        }
+
+        .quick-tip-card:hover {
+            background-color: var(--bg-highlight);
+            border-color: #383838;
+        }
+
+        .quick-tip-card i {
+            color: var(--spotify-green);
+            font-size: 24px;
+        }
+
+        .quick-tip-card h3 {
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .quick-tip-card p {
+            font-size: 13px;
+            color: var(--text-sub);
+            line-height: 1.4;
+        }
+
+        /* PLAYER BAR INFERIOR */
+        .player-bar {
+            height: var(--player-height);
+            background-color: var(--bg-black);
+            border-top: 1px solid var(--border-subtle);
+            display: grid;
+            grid-template-columns: 280px 1fr 280px;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 200;
+        }
+
+        .player-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            overflow: hidden;
+        }
+
+        .player-thumb-box {
+            width: 54px;
+            height: 54px;
+            border-radius: 4px;
+            overflow: hidden;
+            background-color: #242424;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .player-thumb {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .player-thumb-fallback {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--spotify-green);
+            font-size: 20px;
+            background: #242424;
+        }
+
+        .player-track-info {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .player-title {
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .player-artist {
+            color: var(--text-sub);
+            font-size: 11px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .player-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .player-controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .player-status-badge {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-sub);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .player-status-badge.active {
+            color: var(--spotify-green);
+        }
+
+        .player-progress-container {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .progress-time {
+            font-size: 11px;
+            color: var(--text-sub);
+            font-variant-numeric: tabular-nums;
+            min-width: 32px;
+        }
+
+        .spotify-progress-bar {
+            flex: 1;
+            height: 4px;
+            background-color: #4d4d4d;
+            border-radius: 2px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: height 0.15s ease;
+        }
+
+        .player-center:hover .spotify-progress-bar {
+            height: 6px;
+        }
+
+        .spotify-progress-fill {
+            height: 100%;
+            background-color: #fff;
+            width: 0%;
+            border-radius: 2px;
+            transition: width 0.3s ease, background-color 0.15s ease;
+        }
+
+        .player-center:hover .spotify-progress-fill {
+            background-color: var(--spotify-green);
+        }
+
+        .btn-player-cancel {
+            background: none;
+            border: none;
+            color: var(--danger);
+            font-size: 14px;
+            cursor: pointer;
+            padding: 4px;
+            transition: 0.2s;
+            display: none;
+        }
+
+        .btn-player-cancel:hover {
+            color: var(--danger-hover);
+            transform: scale(1.1);
+        }
+
+        .player-right {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 16px;
+        }
+
+        .badge-quality {
+            background-color: #242424;
+            color: var(--spotify-green);
+            padding: 4px 10px;
+            border-radius: 500px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            border: 1px solid #333;
+        }
+
+        /* TOAST */
+        #toast-container {
+            position: fixed;
+            bottom: calc(var(--player-height) + 20px);
+            right: 25px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+            max-width: 480px;
+        }
+
+        .toast {
+            background: #242424;
+            color: #fff;
+            border: 1px solid #383838;
+            border-left: 5px solid var(--spotify-green);
+            padding: 12px 18px;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            font-size: 13px;
+            font-weight: 600;
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            opacity: 0;
+            transform: translateY(15px);
+            transition: all 0.3s ease;
+            line-height: 1.4;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.error {
+            border-left-color: var(--danger);
+        }
+
+        .toast.info {
+            border-left-color: #2196f3;
+        }
+
+        /* BOTÃO CONECTAR CELULAR */
+        .btn-mobile-connect {
+            background-color: rgba(30, 215, 96, 0.15);
+            color: var(--spotify-green);
+            border: 1px solid rgba(30, 215, 96, 0.35);
+            padding: 8px 16px;
+            border-radius: 500px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .btn-mobile-connect:hover {
+            background-color: var(--spotify-green);
+            color: #000;
+            transform: scale(1.03);
+            box-shadow: 0 4px 14px rgba(30, 215, 96, 0.4);
+        }
+
+        .btn-player-save {
+            background-color: rgba(30, 215, 96, 0.2);
+            color: var(--spotify-green);
+            border: 1px solid var(--spotify-green);
+            padding: 5px 12px;
+            border-radius: 500px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            margin-left: 8px;
+        }
+
+        .btn-player-save:hover {
+            background-color: var(--spotify-green);
+            color: #000;
+        }
+
+        /* MODAL CELULAR */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .modal-card {
+            background-color: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 440px;
+            width: 100%;
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            animation: modalFadeIn 0.25s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-close-btn {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            background: transparent;
+            border: none;
+            color: var(--text-sub);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 6px;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+
+        .modal-close-btn:hover {
+            color: #fff;
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 18px;
+        }
+
+        .modal-icon-badge {
+            display: inline-flex;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(30, 215, 96, 0.15);
+            color: var(--spotify-green);
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+
+        .modal-header h2 {
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .modal-header p {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            line-height: 1.4;
+        }
+
+        .qr-box-wrapper {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 16px auto;
+            width: 198px;
+            height: 198px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+
+        .qrcode-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .url-copy-box {
+            display: flex;
+            gap: 8px;
+            background: var(--bg-highlight);
+            border-radius: 8px;
+            padding: 6px;
+            border: 1px solid var(--border-subtle);
+            margin-bottom: 16px;
+        }
+
+        .url-copy-box input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #fff;
+            padding: 6px 10px;
+            font-size: 13px;
+            font-family: monospace;
+            outline: none;
+        }
+
+        .url-copy-box button {
+            background-color: var(--spotify-green);
+            color: #000;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .url-copy-box button:hover {
+            background-color: var(--spotify-green-hover);
+        }
+
+        .modal-instructions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 0.82rem;
+            color: var(--text-sub);
+            background: #141414;
+            padding: 12px 14px;
+            border-radius: 8px;
+            border: 1px solid #222;
+        }
+
+        .instruction-item {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            line-height: 1.35;
+        }
+
+        .inst-num {
+            background: var(--spotify-green);
+            color: #000;
+            font-weight: 800;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        @media (max-width: 900px) {
+            .app-layout {
+                grid-template-columns: 1fr;
+                padding: 4px;
+            }
+            .sidebar {
+                display: none;
+            }
+            .topbar {
+                padding: 10px;
+                gap: 8px;
+            }
+            .search-container {
+                padding: 3px 6px 3px 12px;
+            }
+            .btn-mobile-connect span {
+                display: none;
+            }
+            .btn-mobile-connect {
+                padding: 8px 12px;
+            }
+            .player-bar {
+                grid-template-columns: 1fr auto;
+                padding: 0 10px;
+            }
+            .player-right {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="toast-container"></div>
+
+<div class="app-layout">
+    <!-- BARRA LATERAL -->
+    <aside class="sidebar">
+        <div class="brand" onclick="location.reload()">
+            <i class="fa-brands fa-spotify"></i>
+            <div class="brand-text">Sound<span>Pro</span></div>
+        </div>
+
+        <nav class="nav-group">
+            <a href="#" class="nav-item active" onclick="mostrarInicio()">
+                <i class="fa-solid fa-house"></i> Início
+            </a>
+            <a href="#" class="nav-item" onclick="focarBusca()">
+                <i class="fa-solid fa-magnifying-glass"></i> Buscar & Baixar
+            </a>
+        </nav>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">
+                <span>Pasta de Download</span>
+                <i class="fa-solid fa-folder"></i>
+            </div>
+            <div class="dir-box">
+                <span class="dir-label">Destino atual</span>
+                <span class="dir-path" id="sidebar-dir-display">Carregando...</span>
+            </div>
+            
+            <!-- ATALHOS INSTANTÂNEOS DE PASTA -->
+            <div class="quick-presets">
+                <button class="btn-preset" id="preset-music" onclick="definirPastaPreset('music')" title="Pasta Músicas do Windows">
+                    <i class="fa-solid fa-music"></i> Músicas
+                </button>
+                <button class="btn-preset" id="preset-downloads" onclick="definirPastaPreset('downloads')" title="Pasta Downloads do Windows">
+                    <i class="fa-solid fa-download"></i> Downloads
+                </button>
+                <button class="btn-preset" id="preset-desktop" onclick="definirPastaPreset('desktop')" title="Área de Trabalho">
+                    <i class="fa-solid fa-desktop"></i> Desktop
+                </button>
+            </div>
+
+            <button class="btn-change-folder" id="btn-alterar-pasta" onclick="escolherPasta()">
+                <i class="fa-solid fa-folder-open"></i> Procurar Outra...
+            </button>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">
+                <span>Formato de Conversão</span>
+                <i class="fa-solid fa-sliders"></i>
+            </div>
+            <div class="format-pills">
+                <button class="format-pill active" id="btn-fmt-mp3" onclick="setFormato('mp3')">MP3 (Áudio)</button>
+                <button class="format-pill" id="btn-fmt-mp4" onclick="setFormato('mp4')">MP4 (Vídeo)</button>
+            </div>
+        </div>
+
+        <div class="features-badge">
+            <div><i class="fa-solid fa-check"></i> Áudio 192kbps cristalino</div>
+            <div><i class="fa-solid fa-check"></i> Metadados ID3 e Capas em HD</div>
+            <div><i class="fa-solid fa-check"></i> Busca inteligente ou link direto</div>
+        </div>
+    </aside>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="main-view" id="main-view">
+        <header class="topbar">
+            <div class="search-container">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="playlist-input" placeholder="Cole o link ou digite o nome de uma música/artista..." autocomplete="off" spellcheck="false" oninput="toggleBotaoLimpar()">
+                <button class="btn-clear-search" id="btn-clear-search" onclick="limparBusca()" title="Limpar">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <button class="btn-analyze" id="btn-carregar" onclick="carregarLink()">
+                    <i class="fa-solid fa-bolt"></i> Analisar
+                </button>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <button class="btn-mobile-connect" id="btn-open-mobile-modal" onclick="abrirModalCelular()" title="Usar no Celular via Wi-Fi">
+                    <i class="fa-solid fa-mobile-screen-button"></i> <span>No Celular</span>
+                </button>
+
+                <div class="view-switchers" id="view-switchers" style="display: none;">
+                    <button class="view-btn active" id="btn-view-table" onclick="setModoVisualizacao('table')" title="Visualização em Lista">
+                        <i class="fa-solid fa-list"></i>
+                    </button>
+                    <button class="view-btn" id="btn-view-grid" onclick="setModoVisualizacao('grid')" title="Visualização em Grade">
+                        <i class="fa-solid fa-grip"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- TELA INICIAL (QUANDO VAZIO) -->
+        <div class="welcome-view" id="welcome-view">
+            <div class="welcome-hero">
+                <div class="welcome-hero-content">
+                    <h2>Músicas e Playlists no seu computador & celular</h2>
+                    <p>Cole qualquer URL do YouTube, link de playlist, ou <strong>digite o nome da música ou artista</strong> para encontrar e baixar com metadados e capas automáticas.</p>
+                </div>
+                <i class="fa-solid fa-music welcome-hero-bg-icon"></i>
+            </div>
+
+            <div class="quick-tips-grid">
+                <div class="quick-tip-card">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <h3>Busca por Nome ou Link</h3>
+                    <p>Você pode pesquisar direto por nome (ex: <em>Coldplay Yellow</em>) ou colar o link completo do YouTube.</p>
+                </div>
+                <div class="quick-tip-card">
+                    <i class="fa-solid fa-compact-disc"></i>
+                    <h3>Tags ID3 & Capas em HD</h3>
+                    <p>Os arquivos MP3 já vêm com título, artista, nome do álbum e imagem de capa embutidos para seu tocador.</p>
+                </div>
+                <div class="quick-tip-card">
+                    <i class="fa-solid fa-video"></i>
+                    <h3>MP3 ou MP4</h3>
+                    <p>Alterne entre extração de áudio de alta fidelidade (192kbps) ou vídeo MP4 em alta resolução.</p>
+                </div>
+                <div class="quick-tip-card" onclick="abrirModalCelular()" style="cursor: pointer; border-color: rgba(30, 215, 96, 0.4);">
+                    <i class="fa-solid fa-mobile-screen-button" style="color: var(--spotify-green);"></i>
+                    <h3>SoundPro no Celular</h3>
+                    <p>Controle e baixe direto pelo seu smartphone na mesma rede Wi-Fi. Toque para ver o QR Code!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- HERO BANNER (QUANDO PLAYLIST/MÚSICA ESTÁ CARREGADA) -->
+        <section class="hero-banner" id="hero-banner" style="display: none;">
+            <div class="hero-cover-box">
+                <img src="" id="hero-cover-img" class="hero-cover" alt="Capa" onerror="this.src=svgFallback();">
+            </div>
+            <div class="hero-info">
+                <span class="hero-type" id="hero-badge">Playlist</span>
+                <h1 class="hero-title" id="hero-title-text">Nome da Coleção</h1>
+                <div class="hero-meta">
+                    <span class="highlight" id="hero-author">Autor</span>
+                    <span class="dot">•</span>
+                    <span id="hero-count-info">0 músicas</span>
+                    <span class="dot">•</span>
+                    <span id="hero-format-info">MP3</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- BARRA DE AÇÃO DA PLAYLIST -->
+        <div class="action-bar" id="action-bar" style="display: none;">
+            <div class="action-left">
+                <button class="btn-play-all" id="btn-dl-all" onclick="baixarTodas()" title="Baixar Tudo">
+                    <i class="fa-solid fa-arrow-down"></i>
+                </button>
+                <button class="action-btn-pill" id="action-pill-format" onclick="toggleFormatoRapido()">
+                    Formato: <span id="label-action-fmt">MP3</span>
+                </button>
+            </div>
+            <div>
+                <input type="text" class="filter-input" id="filter-input" placeholder="Filtrar faixas..." oninput="filtrarMusicas()">
+            </div>
+        </div>
+
+        <!-- ÁREA DA LISTA / TABELA -->
+        <div class="content-area" id="content-area" style="display: none;">
+            <table class="track-table" id="tracks-table">
+                <thead>
+                    <tr>
+                        <th class="col-index center">#</th>
+                        <th>Título</th>
+                        <th>Álbum / Canal</th>
+                        <th class="center"><i class="fa-regular fa-clock"></i></th>
+                        <th class="center" style="width: 120px;">Ação</th>
+                    </tr>
+                </thead>
+                <tbody id="tracks-tbody"></tbody>
+            </table>
+
+            <div class="cards-grid" id="tracks-grid"></div>
+        </div>
+    </main>
+</div>
+
+<!-- PLAYER BAR INFERIOR -->
+<footer class="player-bar">
+    <div class="player-left">
+        <div class="player-thumb-box" id="player-thumb-box">
+            <img src="" id="player-thumb" class="player-thumb" style="display: none;" alt="Capa" onerror="this.style.display='none'; document.getElementById('player-thumb-fallback').style.display='flex';">
+            <div class="player-thumb-fallback" id="player-thumb-fallback">
+                <i class="fa-solid fa-music"></i>
+            </div>
+        </div>
+        <div class="player-track-info">
+            <span class="player-title" id="player-title">SoundPro Pronto</span>
+            <span class="player-artist" id="player-artist">Aguardando download...</span>
+        </div>
+    </div>
+
+    <div class="player-center">
+        <div class="player-controls">
+            <span class="player-status-badge" id="player-status-badge">
+                <i class="fa-solid fa-circle-check" style="color: var(--spotify-green);"></i>
+                <span id="player-status-text">Pronto</span>
+            </span>
+            <button class="btn-player-cancel" id="btn-player-cancel" onclick="cancelarDownload()" title="Cancelar Download Atual">
+                <i class="fa-solid fa-circle-xmark"></i>
+            </button>
+            <button class="btn-player-save" id="btn-salvar-aparelho" style="display: none;" onclick="salvarUltimoNoAparelho()" title="Baixar este arquivo para o celular / aparelho">
+                <i class="fa-solid fa-cloud-arrow-down"></i> Salvar no Aparelho
+            </button>
+        </div>
+        <div class="player-progress-container">
+            <span class="progress-time" id="progress-percent-label">0%</span>
+            <div class="spotify-progress-bar">
+                <div class="spotify-progress-fill" id="player-progress-fill"></div>
+            </div>
+            <span class="progress-time" id="progress-counter-label">--/--</span>
+        </div>
+    </div>
+
+    <div class="player-right">
+        <span class="badge-quality" id="player-badge-quality">MP3 192K</span>
+    </div>
+</footer>
+
+<!-- MODAL CONECTAR CELULAR -->
+<div class="modal-overlay" id="modal-celular" style="display: none;" onclick="fecharModalCelular(event)">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <button class="modal-close-btn" onclick="fecharModalCelular()"><i class="fa-solid fa-xmark"></i></button>
+        <div class="modal-header">
+            <div class="modal-icon-badge"><i class="fa-solid fa-mobile-screen-button"></i></div>
+            <h2>SoundPro no seu Celular</h2>
+            <p>Acesse e controle este aplicativo pelo seu smartphone sem instalar nada da loja!</p>
+        </div>
+        
+        <div class="qr-box-wrapper">
+            <div id="qrcode-container" class="qrcode-container"></div>
+            <div class="qr-loading" id="qr-loading" style="color: #000; font-size: 13px; text-align: center;"><i class="fa-solid fa-spinner fa-spin"></i> Gerando QR Code...</div>
+        </div>
+
+        <div class="url-copy-box">
+            <input type="text" id="mobile-url-input" readonly value="Carregando link...">
+            <button id="btn-copy-url" onclick="copiarLinkCelular()"><i class="fa-solid fa-copy"></i> Copiar</button>
+        </div>
+
+        <div class="modal-instructions">
+            <div class="instruction-item">
+                <span class="inst-num">1</span>
+                <div><strong>Mesmo Wi-Fi:</strong> Certifique-se de que o celular está no mesmo Wi-Fi deste computador.</div>
+            </div>
+            <div class="instruction-item">
+                <span class="inst-num">2</span>
+                <div><strong>Aponte a Câmera:</strong> Escaneie o QR Code acima ou digite o link no navegador do celular (Chrome ou Safari).</div>
+            </div>
+            <div class="instruction-item">
+                <span class="inst-num">3</span>
+                <div><strong>Instale como App:</strong> No celular, toque nos 3 pontinhos do Chrome (ou Compartilhar no Safari) e selecione <em>"Adicionar à tela inicial"</em>. Ele vira um app nativo na sua tela!</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let playlistAtual = null;
+    let listaFiltrada = [];
+    let pastaAtual = '';
+    let presetsServidor = {};
+    let formatoSelecionado = 'mp3';
+    let modoVisualizacao = 'table';
+    let currentTaskId = null;
+    let currentEventSource = null;
+    let qrcodeInstance = null;
+    let currentMobileUrl = '';
+    let ultimoDownloadUrl = '';
+    let ultimoDownloadNome = '';
+    const isMobileClient = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+
+    async function abrirModalCelular() {
+        const modal = document.getElementById('modal-celular');
+        modal.style.display = 'flex';
+        const container = document.getElementById('qrcode-container');
+        const loading = document.getElementById('qr-loading');
+        const inputUrl = document.getElementById('mobile-url-input');
+
+        try {
+            const res = await fetch('/api/network-info');
+            const data = await res.json();
+            currentMobileUrl = data.url;
+            inputUrl.value = data.url;
+            loading.style.display = 'none';
+            container.style.display = 'flex';
+            container.innerHTML = '';
+
+            if (typeof QRCode !== 'undefined') {
+                qrcodeInstance = new QRCode(container, {
+                    text: data.url,
+                    width: 170,
+                    height: 170,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+            } else {
+                container.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=170x170&data=${encodeURIComponent(data.url)}" alt="QR Code" style="width: 170px; height: 170px; display: block;">`;
+            }
+        } catch (e) {
+            loading.innerHTML = '<span style="color: var(--danger); font-size: 13px;">Erro ao carregar IP local. Certifique-se de estar conectado ao Wi-Fi.</span>';
+        }
+    }
+
+    function fecharModalCelular(e) {
+        if (!e || e.target.id === 'modal-celular' || e.currentTarget?.classList?.contains('modal-close-btn')) {
+            document.getElementById('modal-celular').style.display = 'none';
+        }
+    }
+
+    function copiarLinkCelular() {
+        const inputUrl = document.getElementById('mobile-url-input');
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(inputUrl.value).then(() => {
+                showToast('Link copiado!', 'info', 2500);
+                const btn = document.getElementById('btn-copy-url');
+                const orig = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Copiado!';
+                setTimeout(() => { btn.innerHTML = orig; }, 2000);
+            }).catch(() => {
+                inputUrl.select();
+                document.execCommand('copy');
+                showToast('Link copiado!', 'info', 2000);
+            });
+        } else {
+            inputUrl.select();
+            document.execCommand('copy');
+            showToast('Link copiado!', 'info', 2000);
+        }
+    }
+
+    function dispararDownloadNoAparelho(url, filename) {
+        if (!url) return;
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename || 'musica.mp3';
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        setTimeout(() => link.remove(), 1000);
+        showToast(`Baixando "${filename}" para este aparelho...`, 'info', 3000);
+    }
+
+    function salvarUltimoNoAparelho() {
+        if (ultimoDownloadUrl) {
+            dispararDownloadNoAparelho(ultimoDownloadUrl, ultimoDownloadNome);
+        } else {
+            showToast('Nenhum arquivo recente disponível para download.', 'error');
+        }
+    }
+
+    function svgFallback() {
+        return "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23242424'/><circle cx='50' cy='50' r='20' fill='none' stroke='%231ed760' stroke-width='4'/><circle cx='50' cy='50' r='6' fill='%231ed760'/></svg>";
+    }
+
+    function showToast(message, type = 'info', duration = 4000) {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        let icon = '<i class="fa-solid fa-circle-check" style="color: var(--spotify-green); font-size: 16px;"></i>';
+        if (type === 'error') icon = '<i class="fa-solid fa-circle-exclamation" style="color: var(--danger); font-size: 16px;"></i>';
+        else if (type === 'info') icon = '<i class="fa-solid fa-circle-info" style="color: #2196f3; font-size: 16px;"></i>';
+
+        toast.innerHTML = `${icon}<span>${message}</span>`;
+        container.appendChild(toast);
+
+        setTimeout(() => toast.classList.add('show'), 20);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 350);
+        }, duration);
+    }
+
+    function sendHeartbeat() {
+        fetch('/api/heartbeat').catch(() => {});
+    }
+    setInterval(sendHeartbeat, 4000);
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') sendHeartbeat();
+    });
+    window.addEventListener('focus', sendHeartbeat);
+    window.addEventListener('click', sendHeartbeat);
+
+    window.onload = async () => {
+        try {
+            const res = await fetch('/api/get-directory');
+            const data = await res.json();
+            pastaAtual = data.directory || '';
+            presetsServidor = data.presets || {};
+            atualizarExibicaoPasta(pastaAtual);
+            destacarPresetAtivo(pastaAtual);
+        } catch {
+            atualizarExibicaoPasta('Pasta Padrão');
+        }
+
+        const input = document.getElementById('playlist-input');
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') carregarLink();
+        });
+    };
+
+    function atualizarExibicaoPasta(caminho) {
+        document.getElementById('sidebar-dir-display').innerText = caminho || 'Não definida';
+        document.getElementById('sidebar-dir-display').title = caminho;
+    }
+
+    function destacarPresetAtivo(caminho) {
+        const pNorm = (caminho || '').toLowerCase().replace(/\\/g, '/');
+        document.getElementById('preset-music').classList.toggle('active', pNorm.endsWith('/music') || pNorm.endsWith('/músicas'));
+        document.getElementById('preset-downloads').classList.toggle('active', pNorm.endsWith('/downloads'));
+        document.getElementById('preset-desktop').classList.toggle('active', pNorm.endsWith('/desktop') || pNorm.endsWith('/área de trabalho'));
+    }
+
+    async function definirPastaPreset(tipo) {
+        try {
+            const res = await fetch('/api/set-directory', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ preset: tipo })
+            });
+            const data = await res.json();
+            if (data.directory) {
+                pastaAtual = data.directory;
+                atualizarExibicaoPasta(pastaAtual);
+                destacarPresetAtivo(pastaAtual);
+                showToast(`Pasta alterada para: ${pastaAtual}`, 'info', 2200);
+            }
+        } catch {
+            showToast('Erro ao trocar para pasta pré-definida.', 'error');
+        }
+    }
+
+    async function escolherPasta() {
+        const btn = document.getElementById('btn-alterar-pasta');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Selecionando...';
+        try {
+            const res = await fetch('/api/select-directory', { method: 'POST' });
+            const data = await res.json();
+            if (data.directory) {
+                pastaAtual = data.directory;
+                atualizarExibicaoPasta(pastaAtual);
+                destacarPresetAtivo(pastaAtual);
+                showToast(`Pasta selecionada: ${pastaAtual}`, 'info', 2500);
+            }
+        } catch {
+            showToast('Erro ao abrir diálogo de pasta.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-folder-open"></i> Procurar Outra...';
+        }
+    }
+
+    function toggleBotaoLimpar() {
+        const input = document.getElementById('playlist-input');
+        const btnClear = document.getElementById('btn-clear-search');
+        btnClear.style.display = input.value.trim().length > 0 ? 'inline-block' : 'none';
+    }
+
+    function limparBusca() {
+        const input = document.getElementById('playlist-input');
+        input.value = '';
+        toggleBotaoLimpar();
+        input.focus();
+    }
+
+    function focarBusca() {
+        const input = document.getElementById('playlist-input');
+        input.focus();
+        input.select();
+    }
+
+    function mostrarInicio() {
+        document.getElementById('welcome-view').style.display = 'flex';
+        document.getElementById('hero-banner').style.display = 'none';
+        document.getElementById('action-bar').style.display = 'none';
+        document.getElementById('content-area').style.display = 'none';
+        document.getElementById('view-switchers').style.display = 'none';
+    }
+
+    function setModoVisualizacao(modo) {
+        modoVisualizacao = modo;
+        document.getElementById('btn-view-table').classList.toggle('active', modo === 'table');
+        document.getElementById('btn-view-grid').classList.toggle('active', modo === 'grid');
+        document.getElementById('tracks-table').style.display = modo === 'table' ? 'table' : 'none';
+        document.getElementById('tracks-grid').style.display = modo === 'grid' ? 'grid' : 'none';
+    }
+
+    function setFormato(fmt) {
+        formatoSelecionado = fmt;
+        document.getElementById('btn-fmt-mp3').classList.toggle('active', fmt === 'mp3');
+        document.getElementById('btn-fmt-mp4').classList.toggle('active', fmt === 'mp4');
+        document.getElementById('hero-format-info').innerText = fmt.toUpperCase();
+        document.getElementById('label-action-fmt').innerText = fmt.toUpperCase();
+        document.getElementById('player-badge-quality').innerText = fmt === 'mp3' ? 'MP3 192K' : 'MP4 HD';
+        if (playlistAtual) {
+            renderizarLista(listaFiltrada.length ? listaFiltrada : playlistAtual.tracks);
+        }
+    }
+
+    function toggleFormatoRapido() {
+        setFormato(formatoSelecionado === 'mp3' ? 'mp4' : 'mp3');
+    }
+
+    async function carregarLink() {
+        const input = document.getElementById('playlist-input').value.trim();
+        const btn = document.getElementById('btn-carregar');
+        if (!input) return showToast('Digite o nome de uma música ou cole um link do YouTube!', 'error');
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Analisando...';
+
+        try {
+            const res = await fetch(`/api/playlist-info?id=${encodeURIComponent(input)}`);
+            const data = await res.json();
+
+            if (!res.ok || data.error) throw new Error(data.error || 'Erro ao carregar link.');
+
+            playlistAtual = data;
+            listaFiltrada = [...data.tracks];
+
+            document.getElementById('welcome-view').style.display = 'none';
+            document.getElementById('hero-banner').style.display = 'flex';
+            document.getElementById('action-bar').style.display = 'flex';
+            document.getElementById('content-area').style.display = 'block';
+            document.getElementById('view-switchers').style.display = 'flex';
+
+            const capaPrincipal = data.tracks[0]?.thumbnail || svgFallback();
+            document.getElementById('hero-cover-img').src = capaPrincipal;
+            document.getElementById('hero-badge').innerText = data.is_single ? 'Música Individual' : 'Coleção / Playlist';
+            document.getElementById('hero-title-text').innerText = data.title;
+            document.getElementById('hero-author').innerText = data.tracks[0]?.artist || 'YouTube';
+            document.getElementById('hero-count-info').innerText = data.is_single ? '1 música' : `${data.track_count} músicas`;
+            document.getElementById('hero-format-info').innerText = formatoSelecionado.toUpperCase();
+
+            renderizarLista(listaFiltrada);
+            showToast(data.is_single ? 'Música pronta!' : `Encontrado: ${data.track_count} faixas.`, 'info');
+
+            document.getElementById('main-view').scrollTo({ top: 0, behavior: 'smooth' });
+        } catch (err) {
+            showToast(err.message, 'error', 6500);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Analisar';
+        }
+    }
+
+    function filtrarMusicas() {
+        const termo = document.getElementById('filter-input').value.toLowerCase().trim();
+        if (!playlistAtual) return;
+        listaFiltrada = playlistAtual.tracks.filter(t => 
+            t.title.toLowerCase().includes(termo) || 
+            t.artist.toLowerCase().includes(termo)
+        );
+        renderizarLista(listaFiltrada);
+    }
+
+    function renderizarLista(tracks) {
+        const tbody = document.getElementById('tracks-tbody');
+        tbody.innerHTML = tracks.map((t, idx) => `
+            <tr class="track-row" onclick="baixarIndividualPorObjeto(${t.index - 1})">
+                <td class="col-index center">
+                    <span class="index-number">${idx + 1}</span>
+                    <button class="btn-row-dl" title="Baixar ${t.title}">
+                        <i class="fa-solid fa-arrow-down"></i>
+                    </button>
+                </td>
+                <td>
+                    <div class="track-main-info">
+                        <img src="${t.thumbnail || svgFallback()}" class="track-thumb" alt="Capa" loading="lazy" onerror="this.src=svgFallback();">
+                        <div class="track-text-box">
+                            <span class="track-name" title="${t.title}">${t.title}</span>
+                            <span class="track-artist">${t.artist}</span>
+                        </div>
+                    </div>
+                </td>
+                <td class="track-album" title="${t.album || t.artist}">${t.album || t.artist}</td>
+                <td class="track-duration center">${t.duration}</td>
+                <td class="center">
+                    <button class="btn-quick-download" onclick="event.stopPropagation(); baixarIndividualPorObjeto(${t.index - 1})">
+                        ${formatoSelecionado.toUpperCase()}
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+
+        const grid = document.getElementById('tracks-grid');
+        grid.innerHTML = tracks.map(t => `
+            <div class="spotify-card" onclick="baixarIndividualPorObjeto(${t.index - 1})">
+                <div class="card-img-wrapper">
+                    <img src="${t.thumbnail || svgFallback()}" alt="Capa" loading="lazy" onerror="this.src=svgFallback();">
+                    <button class="card-hover-play" onclick="event.stopPropagation(); baixarIndividualPorObjeto(${t.index - 1})" title="Baixar">
+                        <i class="fa-solid fa-arrow-down"></i>
+                    </button>
+                </div>
+                <div class="card-title" title="${t.title}">${t.title}</div>
+                <div class="card-sub">${t.artist} • ${t.duration}</div>
+            </div>
+        `).join('');
+    }
+
+    function baixarIndividualPorObjeto(trackIndex) {
+        if (!playlistAtual || !playlistAtual.tracks[trackIndex]) return;
+        executarLote([playlistAtual.tracks[trackIndex]]);
+    }
+
+    function baixarTodas() {
+        if (!playlistAtual || !playlistAtual.tracks.length) return;
+        const tracksParaBaixar = listaFiltrada.length ? listaFiltrada : playlistAtual.tracks;
+        executarLote(tracksParaBaixar);
+    }
+
+    async function executarLote(tracks) {
+        const btnDlAll = document.getElementById('btn-dl-all');
+        const pFill = document.getElementById('player-progress-fill');
+        const pPercent = document.getElementById('progress-percent-label');
+        const pCounter = document.getElementById('progress-counter-label');
+        const pStatusBadge = document.getElementById('player-status-badge');
+        const btnCancel = document.getElementById('btn-player-cancel');
+        const pThumb = document.getElementById('player-thumb');
+        const pThumbFallback = document.getElementById('player-thumb-fallback');
+        const pTitle = document.getElementById('player-title');
+        const pArtist = document.getElementById('player-artist');
+
+        btnDlAll.disabled = true;
+        btnCancel.style.display = 'inline-block';
+        pStatusBadge.classList.add('active');
+        pStatusBadge.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="color: var(--spotify-green);"></i> <span id="player-status-text">Baixando</span>';
+
+        pFill.style.width = '0%';
+        pPercent.innerText = '0%';
+        pCounter.innerText = `0/${tracks.length}`;
+
+        if (tracks[0].thumbnail) {
+            pThumb.src = tracks[0].thumbnail;
+            pThumb.style.display = 'block';
+            pThumbFallback.style.display = 'none';
+        } else {
+            pThumb.style.display = 'none';
+            pThumbFallback.style.display = 'flex';
+        }
+
+        pTitle.innerText = tracks[0].title;
+        pArtist.innerText = `Preparando download em ${formatoSelecionado.toUpperCase()}...`;
+
+        try {
+            const res = await fetch('/api/start-batch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    directory: pastaAtual,
+                    format: formatoSelecionado,
+                    tracks: tracks
+                })
+            });
+
+            const { task_id, error } = await res.json();
+            if (error) throw new Error(error);
+
+            currentTaskId = task_id;
+            currentEventSource = new EventSource(`/api/stream-progress/${task_id}`);
+
+            currentEventSource.onmessage = (e) => {
+                const data = JSON.parse(e.data);
+
+                if (data.status === 'downloading') {
+                    pTitle.innerText = data.track_title;
+                    pArtist.innerText = `[${data.current}/${data.total}] • ${data.format}`;
+                    pPercent.innerText = `${data.percent}%`;
+                    pFill.style.width = `${data.percent}%`;
+                    pCounter.innerText = `${data.current}/${data.total}`;
+                } else if (data.status === 'track_finished') {
+                    ultimoDownloadUrl = data.download_url;
+                    ultimoDownloadNome = data.filename;
+                    const btnSalvar = document.getElementById('btn-salvar-aparelho');
+                    if (btnSalvar) btnSalvar.style.display = 'inline-flex';
+                    showToast(`Pronto: ${data.track_title}`, 'info', 2500);
+
+                    if (isMobileClient && data.download_url) {
+                        dispararDownloadNoAparelho(data.download_url, data.filename);
+                    }
+                } else if (data.status === 'finished') {
+                    pFill.style.width = '100%';
+                    pPercent.innerText = '100%';
+                    pTitle.innerText = 'Concluído com Sucesso!';
+                    pArtist.innerText = `Arquivos salvos na pasta`;
+                    showToast('Todos os downloads foram concluídos com sucesso!', 'info');
+                    finalizarOperacao();
+                } else if (data.status === 'cancelled') {
+                    pTitle.innerText = 'Download Cancelado';
+                    pArtist.innerText = 'Interrompido pelo usuário';
+                    showToast('Download cancelado.', 'info');
+                    finalizarOperacao();
+                } else if (data.status === 'error') {
+                    showToast(data.message, 'error', 6000);
+                    finalizarOperacao();
+                }
+            };
+        } catch (err) {
+            showToast(`Erro: ${err.message}`, 'error', 6000);
+            finalizarOperacao();
+        }
+    }
+
+    async function cancelarDownload() {
+        if (!currentTaskId) return;
+        document.getElementById('player-artist').innerText = 'Cancelando processo...';
+        await fetch('/api/cancel-batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ task_id: currentTaskId })
+        });
+    }
+
+    function finalizarOperacao() {
+        if (currentEventSource) {
+            currentEventSource.close();
+            currentEventSource = null;
+        }
+        currentTaskId = null;
+        document.getElementById('btn-dl-all').disabled = false;
+        document.getElementById('btn-player-cancel').style.display = 'none';
+        const pStatusBadge = document.getElementById('player-status-badge');
+        pStatusBadge.classList.remove('active');
+        pStatusBadge.innerHTML = '<i class="fa-solid fa-circle-check" style="color: var(--spotify-green);"></i> <span>Pronto</span>';
+        if (ultimoDownloadUrl) {
+            const btnSalvar = document.getElementById('btn-salvar-aparelho');
+            if (btnSalvar) btnSalvar.style.display = 'inline-flex';
+        }
+    }
+</script>
+</body>
+</html>

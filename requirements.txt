@@ -1,0 +1,8 @@
+flask
+flask-cors
+yt-dlp
+mutagen
+requests
+static-ffmpeg
+pyinstaller
+gunicorn
