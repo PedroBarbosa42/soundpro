@@ -1350,31 +1350,400 @@
             margin-top: 1px;
         }
 
-        @media (max-width: 900px) {
+        .mobile-only-icon {
+            display: none;
+        }
+        .desktop-only-text {
+            display: inline;
+        }
+        .mobile-header-brand {
+            display: none;
+        }
+        body.is-mobile-device .sidebar,
+        body.is-mobile-device .btn-mobile-connect,
+        body.is-mobile-device .view-switchers,
+        body.is-mobile-device .track-table thead,
+        body.is-mobile-device .col-index,
+        body.is-mobile-device .track-album {
+            display: none !important;
+        }
+        body.is-mobile-device .mobile-header-brand {
+            display: flex !important;
+        }
+        body.is-mobile-device .mobile-only-icon {
+            display: inline-block !important;
+        }
+        body.is-mobile-device .desktop-only-text {
+            display: none !important;
+        }
+
+        /* ============================================================
+           FORMATAÇÃO EXCLUSIVA PARA CELULAR (MOBILE-FIRST SPOTIFY APP)
+           ============================================================ */
+        @media (max-width: 768px), (pointer: coarse) and (max-width: 900px) {
+            body {
+                overflow-x: hidden;
+                overflow-y: auto;
+                height: 100vh;
+                height: 100dvh;
+            }
+
+            .mobile-only-icon {
+                display: inline-block;
+            }
+            .desktop-only-text {
+                display: none;
+            }
+
+            /* Oculta elementos estritamente de desktop */
+            .sidebar,
+            .btn-mobile-connect,
+            .view-switchers,
+            .track-table thead,
+            .col-index,
+            .track-album {
+                display: none !important;
+            }
+
+            /* Layout principal para celular */
             .app-layout {
-                grid-template-columns: 1fr;
-                padding: 4px;
+                display: flex;
+                flex-direction: column;
+                height: auto;
+                min-height: calc(100dvh - 72px);
+                padding: 0;
+                gap: 0;
+                background-color: var(--bg-black);
             }
-            .sidebar {
-                display: none;
+
+            .main-view {
+                border-radius: 0;
+                overflow-y: visible;
+                padding-bottom: 96px; /* espaço para o player inferior no celular */
             }
+
+            /* Topbar no celular estilo app nativo */
             .topbar {
-                padding: 10px;
+                position: sticky;
+                top: 0;
+                padding: 12px 14px;
+                background-color: rgba(18, 18, 18, 0.98);
+                backdrop-filter: blur(20px);
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                border-bottom: 1px solid #222;
+                z-index: 100;
+            }
+
+            /* Cabeçalho mobile com logo do SoundPro e pills de formato */
+            .mobile-header-brand {
+                display: flex !important;
+                align-items: center;
+                justify-content: space-between;
+                width: 100%;
+            }
+
+            .mobile-brand-title {
+                display: flex;
+                align-items: center;
                 gap: 8px;
+                font-size: 1.25rem;
+                font-weight: 800;
+                color: #fff;
             }
+
+            .mobile-brand-title i {
+                color: var(--spotify-green);
+                font-size: 24px;
+            }
+
+            .mobile-brand-title span {
+                color: #fff;
+            }
+            .mobile-brand-title span b {
+                color: var(--spotify-green);
+                font-weight: 800;
+            }
+
+            .mobile-format-pills {
+                display: flex !important;
+                background: #242424;
+                border-radius: 500px;
+                padding: 2px;
+                border: 1px solid #333;
+            }
+
+            .mobile-format-pill {
+                background: transparent;
+                border: none;
+                color: var(--text-sub);
+                padding: 5px 12px;
+                border-radius: 500px;
+                font-size: 11px;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+
+            .mobile-format-pill.active {
+                background-color: var(--spotify-green);
+                color: #000;
+            }
+
+            /* Campo de busca no celular */
             .search-container {
-                padding: 3px 6px 3px 12px;
+                max-width: 100%;
+                width: 100%;
+                padding: 5px 6px 5px 14px;
+                background-color: #242424 !important;
+                border: 1px solid #383838;
+                border-radius: 500px;
             }
-            .btn-mobile-connect span {
-                display: none;
+
+            .search-container input {
+                font-size: 13px;
             }
-            .btn-mobile-connect {
-                padding: 8px 12px;
+
+            .btn-analyze {
+                padding: 8px 14px;
+                font-size: 12px;
             }
-            .player-bar {
-                grid-template-columns: 1fr auto;
+
+            /* Tela inicial de boas-vindas no celular */
+            .welcome-view {
+                padding: 16px 14px;
+            }
+
+            .welcome-hero {
+                padding: 20px 16px;
+                border-radius: 12px;
+                margin-bottom: 16px;
+            }
+
+            .welcome-hero h2 {
+                font-size: 1.2rem;
+            }
+
+            .welcome-hero p {
+                font-size: 0.82rem;
+            }
+
+            .quick-tips-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .quick-tip-card {
+                padding: 14px;
+            }
+
+            /* Hero Banner de Playlist / Música no celular */
+            .hero-banner {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                padding: 18px 14px 12px 14px;
+                gap: 12px;
+                background: linear-gradient(180deg, #2a2a2a 0%, var(--bg-base) 100%);
+            }
+
+            .hero-cover-box {
+                width: 130px;
+                height: 130px;
+                border-radius: 8px;
+                box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+            }
+
+            .hero-cover {
+                width: 130px;
+                height: 130px;
+            }
+
+            .hero-title {
+                font-size: 1.2rem;
+                margin: 4px 0;
+            }
+
+            .hero-meta {
+                justify-content: center;
+                font-size: 12px;
+            }
+
+            /* Barra de ação da playlist no celular */
+            .action-bar {
+                padding: 10px 14px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .action-left {
+                justify-content: space-between;
+                width: 100%;
+            }
+
+            .btn-play-all {
+                width: 46px;
+                height: 46px;
+                font-size: 17px;
+            }
+
+            .filter-input {
+                width: 100%;
+                font-size: 13px;
+                padding: 8px 14px;
+            }
+
+            /* Formatação da lista de músicas no celular (estilo Spotify lista de faixas) */
+            .content-area {
                 padding: 0 10px;
             }
+
+            .track-table, 
+            .track-table tbody {
+                display: block;
+                width: 100%;
+            }
+
+            .track-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 10px 8px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                border-radius: 8px;
+                margin-bottom: 3px;
+            }
+
+            .track-row:active {
+                background-color: rgba(255, 255, 255, 0.12);
+            }
+
+            .track-row td {
+                padding: 0;
+            }
+
+            .track-row td:nth-child(2) {
+                flex: 1;
+                min-width: 0;
+                margin-right: 10px;
+            }
+
+            .track-main-info {
+                gap: 12px;
+            }
+
+            .track-thumb {
+                width: 48px;
+                height: 48px;
+                border-radius: 6px;
+            }
+
+            .track-name {
+                font-size: 14px;
+                font-weight: 600;
+                line-height: 1.3;
+            }
+
+            .track-artist {
+                font-size: 12px;
+                color: var(--text-sub);
+            }
+
+            .track-row td.track-duration {
+                font-size: 12px;
+                color: var(--text-muted);
+                margin-right: 8px;
+                display: block;
+            }
+
+            .track-row td:last-child {
+                display: flex;
+                align-items: center;
+            }
+
+            .btn-quick-download {
+                background-color: rgba(30, 215, 96, 0.2);
+                color: var(--spotify-green);
+                border: 1px solid var(--spotify-green);
+                width: 38px;
+                height: 38px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 14px;
+                padding: 0;
+            }
+
+            /* Player inferior mobile (docked bar) */
+            .player-bar {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: auto;
+                min-height: 64px;
+                padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px)) 12px;
+                background-color: rgba(18, 18, 18, 0.98);
+                backdrop-filter: blur(20px);
+                border-top: 1px solid #282828;
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+                z-index: 999;
+                box-shadow: 0 -4px 20px rgba(0,0,0,0.6);
+            }
+
+            .player-left {
+                width: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .player-thumb-box {
+                width: 38px;
+                height: 38px;
+            }
+
+            .player-thumb {
+                width: 38px;
+                height: 38px;
+            }
+
+            .player-title {
+                font-size: 13px;
+                max-width: 170px;
+            }
+
+            .player-artist {
+                font-size: 11px;
+            }
+
+            .player-center {
+                width: 100%;
+            }
+
+            .player-progress-container {
+                width: 100%;
+                gap: 8px;
+            }
+
+            .spotify-progress-bar {
+                height: 3px;
+            }
+
+            .btn-player-save {
+                padding: 6px 14px;
+                font-size: 12px;
+                background: var(--spotify-green);
+                color: #000;
+                font-weight: 800;
+                margin-left: 0;
+            }
+
             .player-right {
                 display: none;
             }
@@ -1451,6 +1820,18 @@
     <!-- CONTEÚDO PRINCIPAL -->
     <main class="main-view" id="main-view">
         <header class="topbar">
+            <!-- CABEÇALHO EXCLUSIVO PARA CELULAR -->
+            <div class="mobile-header-brand">
+                <div class="mobile-brand-title">
+                    <i class="fa-brands fa-spotify"></i>
+                    <span>Sound<b>Pro</b></span>
+                </div>
+                <div class="mobile-format-pills">
+                    <button class="mobile-format-pill active" id="btn-m-mp3" onclick="setFormato('mp3')">🎵 MP3</button>
+                    <button class="mobile-format-pill" id="btn-m-mp4" onclick="setFormato('mp4')">🎬 MP4</button>
+                </div>
+            </div>
+
             <div class="search-container">
                 <i class="fa-solid fa-magnifying-glass search-icon"></i>
                 <input type="text" id="playlist-input" placeholder="Cole o link ou digite o nome de uma música/artista..." autocomplete="off" spellcheck="false" oninput="toggleBotaoLimpar()">
@@ -1883,9 +2264,15 @@
         if (document.visibilityState === 'visible') sendHeartbeat();
     });
     window.addEventListener('focus', sendHeartbeat);
-    window.addEventListener('click', sendHeartbeat);
+    function aplicarModoDispositivo() {
+        const isMobileDevice = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || window.innerWidth <= 768;
+        document.body.classList.toggle('is-mobile-device', isMobileDevice);
+        document.body.classList.toggle('is-desktop-device', !isMobileDevice);
+    }
+    window.addEventListener('resize', aplicarModoDispositivo);
 
     window.onload = async () => {
+        aplicarModoDispositivo();
         try {
             const res = await fetch('/api/get-directory');
             const data = await res.json();
@@ -1992,11 +2379,16 @@
 
     function setFormato(fmt) {
         formatoSelecionado = fmt;
-        document.getElementById('btn-fmt-mp3').classList.toggle('active', fmt === 'mp3');
-        document.getElementById('btn-fmt-mp4').classList.toggle('active', fmt === 'mp4');
-        document.getElementById('hero-format-info').innerText = fmt.toUpperCase();
-        document.getElementById('label-action-fmt').innerText = fmt.toUpperCase();
-        document.getElementById('player-badge-quality').innerText = fmt === 'mp3' ? 'MP3 192K' : 'MP4 HD';
+        document.getElementById('btn-fmt-mp3')?.classList.toggle('active', fmt === 'mp3');
+        document.getElementById('btn-fmt-mp4')?.classList.toggle('active', fmt === 'mp4');
+        document.getElementById('btn-m-mp3')?.classList.toggle('active', fmt === 'mp3');
+        document.getElementById('btn-m-mp4')?.classList.toggle('active', fmt === 'mp4');
+        const heroFmt = document.getElementById('hero-format-info');
+        if (heroFmt) heroFmt.innerText = fmt.toUpperCase();
+        const labelFmt = document.getElementById('label-action-fmt');
+        if (labelFmt) labelFmt.innerText = fmt.toUpperCase();
+        const badgeQ = document.getElementById('player-badge-quality');
+        if (badgeQ) badgeQ.innerText = fmt === 'mp3' ? 'MP3 192K' : 'MP4 HD';
         if (playlistAtual) {
             renderizarLista(listaFiltrada.length ? listaFiltrada : playlistAtual.tracks);
         }
@@ -2081,8 +2473,9 @@
                 <td class="track-album" title="${t.album || t.artist}">${t.album || t.artist}</td>
                 <td class="track-duration center">${t.duration}</td>
                 <td class="center">
-                    <button class="btn-quick-download" onclick="event.stopPropagation(); baixarIndividualPorObjeto(${t.index - 1})">
-                        ${formatoSelecionado.toUpperCase()}
+                    <button class="btn-quick-download" onclick="event.stopPropagation(); baixarIndividualPorObjeto(${t.index - 1})" title="Baixar">
+                        <i class="fa-solid fa-arrow-down mobile-only-icon"></i>
+                        <span class="desktop-only-text">${formatoSelecionado.toUpperCase()}</span>
                     </button>
                 </td>
             </tr>
