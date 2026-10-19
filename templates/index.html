@@ -1446,6 +1446,17 @@
         } catch {
             showToast('Erro ao abrir pasta no computador.', 'error');
         }
+    const isCloud = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+
+    function dispararDownloadNoNavegador(url, filename) {
+        if (!url) return;
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename || 'musica.mp3';
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        setTimeout(() => link.remove(), 1000);
     }
 
     function svgFallback() {
@@ -1490,6 +1501,16 @@
             destacarPresetAtivo(pastaAtual);
         } catch {
             atualizarExibicaoPasta('Pasta Padrão');
+        }
+
+        if (isCloud) {
+            document.querySelectorAll('.btn-top-folder, .btn-player-folder').forEach(el => el.style.display = 'none');
+            const dirDisplay = document.getElementById('sidebar-dir-display');
+            if (dirDisplay) dirDisplay.innerText = 'Downloads do Navegador';
+            const presets = document.querySelector('.quick-presets');
+            if (presets) presets.style.display = 'none';
+            const btnAlterar = document.getElementById('btn-alterar-pasta');
+            if (btnAlterar) btnAlterar.style.display = 'none';
         }
 
         const input = document.getElementById('playlist-input');
@@ -1774,6 +1795,9 @@
                     pCounter.innerText = `${data.current}/${data.total}`;
                 } else if (data.status === 'track_finished') {
                     showToast(`Pronto: ${data.track_title}`, 'info', 2500);
+                    if (isCloud && data.download_url) {
+                        dispararDownloadNoNavegador(data.download_url, data.filename);
+                    }
                 } else if (data.status === 'finished') {
                     pFill.style.width = '100%';
                     pPercent.innerText = '100%';

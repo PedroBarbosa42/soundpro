@@ -95,11 +95,34 @@ porta_ativa_global = 5000
 def open_folder():
     global current_download_dir
     try:
-        pasta = current_download_dir if os.path.exists(current_download_dir) else os.getcwd()
-        os.startfile(pasta)
-        return jsonify({'status': 'ok'}), 200
+        if sys.platform == 'win32' and hasattr(os, 'startfile'):
+            pasta = current_download_dir if os.path.exists(current_download_dir) else os.getcwd()
+            os.startfile(pasta)
+            return jsonify({'status': 'ok'}), 200
+        return jsonify({'status': 'cloud', 'message': 'Executando na nuvem'}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/download-file', methods=['GET'])
+def download_file():
+    filename = request.args.get('filename')
+    if not filename:
+        return jsonify({'error': 'Arquivo não informado.'}), 400
+    safe_name = os.path.basename(filename)
+    pastas_busca = [
+        current_download_dir,
+        os.path.join(USER_HOME, 'Music'),
+        os.path.join(USER_HOME, 'Downloads'),
+        os.path.join(USER_HOME, 'Desktop'),
+        os.getcwd()
+    ]
+    for pasta in pastas_busca:
+        if not os.path.exists(pasta):
+            continue
+        candidato = os.path.join(pasta, safe_name)
+        if os.path.exists(candidato):
+            return send_file(candidato, as_attachment=True, download_name=safe_name)
+    return jsonify({'error': f'Arquivo {safe_name} não encontrado.'}), 404
 
 @app.route('/api/get-directory', methods=['GET'])
 def get_directory():
