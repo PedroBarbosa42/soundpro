@@ -4,7 +4,7 @@ a = Analysis(
     ['app.py'],
     pathex=[],
     binaries=[],
-    datas=[('templates', 'templates')],
+    datas=[('templates', 'templates'), ('ffmpeg', 'ffmpeg')],
     hiddenimports=['static_ffmpeg', 'mutagen', 'yt_dlp'],
     hookspath=[],
     hooksconfig={},

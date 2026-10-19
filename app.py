@@ -91,92 +91,15 @@ PRESET_DIRS = {
 
 porta_ativa_global = 5000
 
-def obter_ip_local():
-    """Descobre o IP local da máquina na rede Wi-Fi/Ethernet."""
+@app.route('/api/open-folder', methods=['POST'])
+def open_folder():
+    global current_download_dir
     try:
-        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-            s.settimeout(0.5)
-            s.connect(('8.8.8.8', 80))
-            return s.getsockname()[0]
-    except Exception:
-        try:
-            return socket.gethostbyname(socket.gethostname())
-        except Exception:
-            return '127.0.0.1'
-
-tunnel_process = None
-tunnel_url = None
-tunnel_lock = threading.Lock()
-
-@app.route('/api/network-info', methods=['GET'])
-def network_info():
-    ip = obter_ip_local()
-    return jsonify({
-        'local_ip': ip,
-        'port': porta_ativa_global,
-        'url': f"http://{ip}:{porta_ativa_global}",
-        'tunnel_url': tunnel_url
-    }), 200
-
-@app.route('/api/create-tunnel', methods=['POST'])
-def create_tunnel():
-    global tunnel_process, tunnel_url
-    with tunnel_lock:
-        if tunnel_url:
-            return jsonify({'url': tunnel_url}), 200
-
-        try:
-            cmd = ['ssh', '-o', 'StrictHostKeyChecking=no', '-o', 'ServerAliveInterval=30', '-R', f'80:127.0.0.1:{porta_ativa_global}', 'nokey@localhost.run']
-            startupinfo = None
-            if sys.platform == 'win32':
-                startupinfo = subprocess.STARTUPINFO()
-                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                startupinfo.wShowWindow = 0
-
-            proc = subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                startupinfo=startupinfo,
-                bufsize=1
-            )
-            tunnel_process = proc
-
-            for _ in range(40):
-                line = proc.stdout.readline()
-                if not line:
-                    time.sleep(0.2)
-                    continue
-                match = re.search(r'(https://[a-zA-Z0-9.-]+\.lhr\.life)', line)
-                if match:
-                    tunnel_url = match.group(1)
-                    return jsonify({'url': tunnel_url}), 200
-
-            return jsonify({'error': 'Tempo limite ao gerar link público.'}), 504
-        except Exception as e:
-            return jsonify({'error': str(e)}), 500
-
-@app.route('/api/download-file', methods=['GET'])
-def download_file():
-    filename = request.args.get('filename')
-    if not filename:
-        return jsonify({'error': 'Arquivo não informado.'}), 400
-    safe_name = os.path.basename(filename)
-    pastas_busca = [
-        current_download_dir,
-        os.path.join(USER_HOME, 'Music'),
-        os.path.join(USER_HOME, 'Downloads'),
-        os.path.join(USER_HOME, 'Desktop'),
-        os.getcwd()
-    ]
-    for pasta in pastas_busca:
-        if not os.path.exists(pasta):
-            continue
-        candidato = os.path.join(pasta, safe_name)
-        if os.path.exists(candidato):
-            return send_file(candidato, as_attachment=True, download_name=safe_name)
-    return jsonify({'error': f'Arquivo {safe_name} não encontrado.'}), 404
+        pasta = current_download_dir if os.path.exists(current_download_dir) else os.getcwd()
+        os.startfile(pasta)
+        return jsonify({'status': 'ok'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/get-directory', methods=['GET'])
 def get_directory():
@@ -429,40 +352,12 @@ def abrir_navegador_quando_pronto(port):
     # Caso atinja o limite, tenta abrir de qualquer forma
     webbrowser.open_new(url)
 
-def monitorar_encerramento():
-    """
-    Monitor de inatividade resiliente:
-    - Dá tolerância de inicialização de até 180s antes de qualquer cliente conectar.
-    - Após conexão, tolera até 90s sem pulso (resistente a abas em segundo plano).
-    - NUNCA encerra o processo se houver downloads em andamento.
-    """
-    global last_heartbeat, first_client_connected
-    while True:
-        time.sleep(5)
-        with active_downloads_lock:
-            em_download = active_downloads_count > 0
-
-        if em_download:
-            # Nunca encerra durante um download
-            last_heartbeat = time.time()
-            continue
-
-        tempo_sem_pulso = time.time() - last_heartbeat
-        if not first_client_connected:
-            # Espera até 180 segundos antes da primeira conexão
-            if tempo_sem_pulso > 180:
-                os._exit(0)
-        else:
-            # Tolerância de 90 segundos após o usuário ter aberto
-            if tempo_sem_pulso > 90:
-                os._exit(0)
-
 if __name__ == '__main__':
     try:
         porta_ativa_global = encontrar_porta_livre(5000)
-        threading.Thread(target=monitorar_encerramento, daemon=True).start()
         threading.Thread(target=abrir_navegador_quando_pronto, args=(porta_ativa_global,), daemon=True).start()
-        app.run(host='0.0.0.0', port=porta_ativa_global, debug=False)
+        print(f"[*] SoundPro rodando em http://127.0.0.1:{porta_ativa_global}")
+        app.run(host='127.0.0.1', port=porta_ativa_global, debug=False)
     except Exception as e:
         try:
             with open(os.path.join(os.path.expanduser('~'), 'soundpro_crash.log'), 'w', encoding='utf-8') as f:
