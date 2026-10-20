@@ -95,11 +95,9 @@ porta_ativa_global = 5000
 def open_folder():
     global current_download_dir
     try:
-        if sys.platform == 'win32' and hasattr(os, 'startfile'):
-            pasta = current_download_dir if os.path.exists(current_download_dir) else os.getcwd()
-            os.startfile(pasta)
-            return jsonify({'status': 'ok'}), 200
-        return jsonify({'status': 'cloud', 'message': 'Executando na nuvem'}), 200
+        pasta = current_download_dir if os.path.exists(current_download_dir) else os.getcwd()
+        os.startfile(pasta)
+        return jsonify({'status': 'ok'}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
